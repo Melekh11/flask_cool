@@ -8,6 +8,7 @@ from forms.user import RegisterForm
 a = input()
 global_init(a)
 db_sess = create_session()
-for user in db_sess.query(User).filter(User.address == "module_1", User.position.notin_(["engineer"]),
-                                       User.speciality.notin_(["engineer"])):
-    print(f"<Colonist> {user.id} {user.surname} {user.name}")
+arr_leads = []
+for user in db_sess.query(User).filter(User.address == "module_1", User.age < 21).all():
+    user.address = "module_1"
+db_sess.commit()
