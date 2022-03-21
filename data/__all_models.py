@@ -1,1 +1,1 @@
-from data import news
+from data import jobs

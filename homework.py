@@ -1,20 +1,13 @@
-import datetime
-import sqlalchemy
-from data.db_session import SqlAlchemyBase
+from flask import Flask, render_template, redirect
+from data import db_session
+from data.users import User
+from data.jobs import News
+from forms.user import RegisterForm
 
 
-class Jobs(SqlAlchemyBase):
-    __tablename__ = ''
-
-    id = sqlalchemy.Column(sqlalchemy.Integer,
-                           primary_key=True, autoincrement=True)
-    team_leader = sqlalchemy.Column(sqlalchemy.Integer, nullable=False)
-    job = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    work_size = sqlalchemy.Column(sqlalchemy.Integer, nullable=True)
-    collaborators = sqlalchemy.Column(sqlalchemy.PickleType, nullable=True)
-    start_date = sqlalchemy.Column(sqlalchemy.Date, nullable=False)
-    end_date = sqlalchemy.Column(sqlalchemy.Date, nullable=False)
-    is_finished = sqlalchemy.Column(sqlalchemy.Boolean, nullable=False)
-
-
-
+a = input()
+global_init(a)
+db_sess = create_session()
+for user in db_sess.query(User).filter(User.address == "module_1", User.position.notin_(["engineer"]),
+                                       User.speciality.notin_(["engineer"])):
+    print(f"<Colonist> {user.id} {user.surname} {user.name}")
