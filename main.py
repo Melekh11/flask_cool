@@ -9,6 +9,7 @@ from forms.register import RegisterForm
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from forms.loginform import LoginForm
 from forms.add_news import AddNews
+from forms.add_job import AddJobs
 
 
 app = Flask(__name__)
@@ -26,7 +27,7 @@ def main():
     app.run()
 
 
-@app.route("/")
+@app.route("/all_jobs")
 def work_plan():
     db_sess = db_session.create_session()
     jobs = db_sess.query(Jobs).all()
@@ -155,6 +156,36 @@ def news_delete(id):
     else:
         abort(404)
     return redirect('/')
+
+
+@app.route("/add_jobs", methods=["GET", "POST"])
+@login_required
+def add_jobs():
+    form = AddJobs()
+    if form.validate_on_submit():
+        name = form.team_leader_name.data
+        surname = form.team_leader_surname.data
+        db_conn = db_session.create_session()
+        id_lead = db_conn.query(User).filter(User.name == name, User.surname == surname).all()
+        start = form.start_date.data.split("/")
+        start_date = datetime.date(int(start[2]), int(start[1]), int(start[0]))
+        end = form.finish_date.data.split("/")
+        end_date = datetime.date(int(end[2]), int(end[1]), int(end[0]))
+        job = Jobs(
+            job=form.job.data,
+            work_size=form.work_size.data,
+            collaborators=form.collaborators.data,
+            start_date=start_date,
+            end_date=end_date,
+            is_finished=form.is_finished.data,
+            team_leader_id=id_lead[0].id
+        )
+        db_conn.add(job)
+        db_conn.commit()
+        return redirect("all_jobs")
+    else:
+        return render_template("add_job.html", form=form, title="Add Job")
+
 
 
 @app.route("/cookie_test")
