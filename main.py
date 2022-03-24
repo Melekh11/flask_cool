@@ -167,10 +167,10 @@ def add_jobs():
         surname = form.team_leader_surname.data
         db_conn = db_session.create_session()
         id_lead = db_conn.query(User).filter(User.name == name, User.surname == surname).all()
-        start = form.start_date.data.split("/")
-        start_date = datetime.date(int(start[2]), int(start[1]), int(start[0]))
-        end = form.finish_date.data.split("/")
-        end_date = datetime.date(int(end[2]), int(end[1]), int(end[0]))
+        start = form.start_date.data.split("-")
+        start_date = datetime.date(int(start[0]), int(start[1]), int(start[2]))
+        end = form.finish_date.data.split("-")
+        end_date = datetime.date(int(end[0]), int(end[1]), int(end[2]))
         job = Jobs(
             job=form.job.data,
             work_size=form.work_size.data,
@@ -185,6 +185,54 @@ def add_jobs():
         return redirect("all_jobs")
     else:
         return render_template("add_job.html", form=form, title="Add Job")
+
+
+@app.route("/add_jobs/<int:id>", methods=["GET", "POST"])
+@login_required
+def change_job(id):
+    form = AddJobs()
+    db_sess = db_session.create_session()
+    if request.method == "GET":
+        db_sess = db_session.create_session()
+        jobs = db_sess.query(Jobs).filter(Jobs.id == id).first()
+        if jobs:
+            team_lead = jobs.team_leader
+
+            form.job.data = jobs.job
+            form.work_size.data = jobs.work_size
+            form.collaborators.data = jobs.collaborators
+            form.start_date.data = jobs.start_date
+            form.finish_date.data = jobs.end_date
+            form.is_finished.data = jobs.is_finished
+            form.team_leader_name.data = team_lead.name
+            form.team_leader_surname.data = team_lead.surname
+        else:
+            abort(404)
+
+    elif form.validate_on_submit():
+        jobs = db_sess.query(Jobs).filter(Jobs.id == id).first()
+        if jobs:
+            data_start_str = str(form.start_date.data).split("-")
+            data_start = datetime.date(int(data_start_str[0]), int(data_start_str[1]), int(data_start_str[2]))
+
+            data_end_str = str(form.finish_date.data).split("-")
+            data_end = datetime.date(int(data_end_str[0]), int(data_end_str[1]), int(data_end_str[2]))
+
+            jobs.job = form.job.data
+            jobs.work_size = form.work_size.data
+            jobs.collaborators = form.collaborators.data
+            jobs.start_date = data_start
+            jobs.end_date = data_end
+            jobs.is_finished = form.is_finished.data
+            new_team_lid = db_sess.query(User).filter(User.name == form.team_leader_name.data,
+                                                      User.surname == form.team_leader_surname.data).first()
+
+            jobs.team_leader_id = new_team_lid.id
+            db_sess.commit()
+            return redirect('/all_jobs')
+        else:
+            abort(404)
+    return render_template("add_job.html", form=form, title="Change Job")
 
 
 
