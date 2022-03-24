@@ -72,7 +72,7 @@ def login():
         user = db_sess.query(User).filter(User.email == form.email.data).first()
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember_me.data)
-            return redirect("/")
+            return redirect("/news")
         return render_template('login.html', title='Авторизация',
                                message="Неправильный логин или пароль",
                                form=form)
@@ -134,7 +134,7 @@ def edit_news(id):
             news.about_it = form.about_it.data
             news.is_private = form.is_private.data
             db_sess.commit()
-            return redirect('/')
+            return redirect('/news')
         else:
             abort(404)
     return render_template('add_news.html',
@@ -155,7 +155,7 @@ def news_delete(id):
         db_sess.commit()
     else:
         abort(404)
-    return redirect('/')
+    return redirect('/news')
 
 
 @app.route("/add_jobs", methods=["GET", "POST"])
@@ -235,6 +235,18 @@ def change_job(id):
     return render_template("add_job.html", form=form, title="Change Job")
 
 
+@app.route('/jobs_delete/<int:id>', methods=['GET', 'POST'])
+@login_required
+def jobs_delete(id):
+    db_sess = db_session.create_session()
+    jobs = db_sess.query(Jobs).filter(Jobs.id == id).first()
+    if jobs:
+        db_sess.delete(jobs)
+        db_sess.commit()
+    else:
+        abort(404)
+    return redirect('/all_jobs')
+
 
 @app.route("/cookie_test")
 def cookie_test():
@@ -270,7 +282,7 @@ def load_user(user_id):
 @login_required
 def logout():
     logout_user()
-    return redirect("/")
+    return redirect("/news")
 
 
 if __name__ == '__main__':
