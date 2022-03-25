@@ -5,11 +5,13 @@ from data import db_session
 from data.users import User
 from data.jobs import Jobs
 from data.news import News
+from data.dapartments import Departments
 from forms.register import RegisterForm
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from forms.loginform import LoginForm
 from forms.add_news import AddNews
 from forms.add_job import AddJobs
+from forms.add_department import AddDepartment
 
 
 app = Flask(__name__)
@@ -25,6 +27,11 @@ login_manager.init_app(app)
 def main():
     db_session.global_init("db/blogs.db")
     app.run()
+
+
+@app.route("/")
+def index():
+    return redirect("all_jobs")
 
 
 @app.route("/all_jobs")
@@ -262,6 +269,86 @@ def cookie_test():
         res.set_cookie("visits_count", '1',
                        max_age=60 * 60 * 24 * 365 * 2)
     return res
+
+
+@app.route("/departments")
+def departments():
+    db_sess = db_session.create_session()
+    departments = db_sess.query(Departments).all()
+    return render_template("departments.html", title="departments", departments=departments)
+
+
+@app.route("/add_department", methods=["GET", "POST"])
+def add_department():
+    form = AddDepartment()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        s = str(form.chef.data).split()
+        name, surname = s[0], s[1]
+        print(name, surname)
+
+        dep = Departments()
+        dep.title = form.title.data
+
+        chef = db_sess.query(User).filter(User.name == name, User.surname == surname).first()
+        if not chef:
+            return render_template("add_department.html", title="Add department", form=form, message=f"no such user"
+                                                                                                     f" {name} {surname}")
+
+        dep.chef_id = chef.id
+        dep.members = form.members.data
+        dep.department_email = form.department_email.data
+        db_sess.add(dep)
+        db_sess.commit()
+        return redirect("departments")
+
+    return render_template("add_department.html", title="Add department", form=form)
+
+
+@app.route("/add_department/<int:id>", methods=["GET", "POST"])
+@login_required
+def change_dep(id):
+    form = AddDepartment()
+    db_sess = db_session.create_session()
+    dep = db_sess.query(Departments).filter(Departments.id == id).first()
+    if request.method == "GET":
+        form.title.data = dep.title
+        form.chef.data = f"{dep.chef.name} {dep.chef.surname}"
+        form.members.data = dep.members
+        form.department_email.data = dep.department_email
+
+    if form.validate_on_submit():
+        s = str(form.chef.data).split()
+        name, surname = s[0], s[1]
+        print(name, surname)
+
+        dep = db_sess.query(Departments).filter(Departments.id == id).first()
+        dep.title = form.title.data
+
+        chef = db_sess.query(User).filter(User.name == name, User.surname == surname).first()
+        if not chef:
+            abort(404)
+
+        dep.chef_id = chef.id
+
+        dep.members = form.members.data
+        dep.department_email = form.department_email.data
+        db_sess.commit()
+        return redirect("/departments")
+
+    return render_template("add_department.html", title="Add department", form=form)
+
+@app.route('/dep_delete/<int:id>', methods=['GET', 'POST'])
+@login_required
+def deps_delete(id):
+    db_sess = db_session.create_session()
+    dep = db_sess.query(Departments).filter(Departments.id == id).first()
+    if dep:
+        db_sess.delete(dep)
+        db_sess.commit()
+    else:
+        abort(404)
+    return redirect('/departments')
 
 
 @app.route("/session_test")

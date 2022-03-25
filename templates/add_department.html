@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Добавление департамента</h1>
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+
+        <p>
+            {{ form.title.label }}<br>
+            {{ form.title(class="form-control") }}<br>
+            {% for error in form.title.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+
+        <p>
+            {{ form.chef.label }}<br>
+            {{ form.chef(class="form-control") }}<br>
+            {% for error in form.chef.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+
+        <p>
+            {{ form.members.label }}<br>
+            {{ form.members(class="form-control") }}<br>
+            {% for error in form.members.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+
+        <p>
+            {{ form.department_email.label }}<br>
+            {{ form.department_email(class="form-control") }}<br>
+            {% for error in form.department_email.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+
+        <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
+
+        {% if message %}
+        <div class="alert alert-danger" role="alert">
+        {{ message }}
+        </div>
+        {% endif %}
+    </form>
+{% endblock %}

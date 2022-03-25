@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>List of departments</h1>
+{% if current_user.is_authenticated and current_user.id == 1 %}
+     <a href="add_department" class="btn btn-secondary">Добавить департаменты</a>
+    {% endif %}
+{% for item in departments%}
+<div class="col-md6 border round padding">
+    <h2># Department № {{loop.index}} </h2>
+    <table>
+        <tr>
+            <th>title of department</th>
+            <th>chief</th>
+            <th>members</th>
+            <th>department email</th>
+        </tr>
+        <tr>
+            <td>{{item.title}}</td>
+            <td>{{item.chef.surname}} {{item.chef.name}}</td>
+            <td>{{item.members}}</td>
+            <td>{{item.department_email}}</td>
+
+        </tr>
+    </table>
+    {% if current_user.is_authenticated and (current_user.id == 1 or current_user.id == item.chef.id) %}
+    <div>
+        <a href="/add_department/{{ item.id }}" class="btn btn-warning">
+            Изменить
+        </a>
+        <a href="/dep_delete/{{ item.id }}" class="btn btn-danger">
+            Удалить
+        </a>
+    </div>
+    {% endif %}
+
+</div>
+{% endfor %}
+{% endblock %}
